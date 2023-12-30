@@ -41,7 +41,7 @@ type Signature struct {
 
 // 打开数据库
 func OpenDB() (*gorm.DB, error) {
-	dsn := "root:050109@tcp(127.0.0.1:3306)/example?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "username:password@tcp(127.0.0.1:3306)/example?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
@@ -64,6 +64,7 @@ func b64(src string) string {
 	return src
 }
 
+//生成jwt
 func JwtGen(name string) string {
 	header := Header{"HS256", "JWT"}
 	var data Data
@@ -74,7 +75,7 @@ func JwtGen(name string) string {
 	data.Iat = time.Now().Format(timeFormat)
 
 	sgt.Src = b64(header.Alg+header.Alg) + "." + b64(data.Name+data.Iat)
-	sgt.Key = "bainianzzz"
+	sgt.Key = "key"
 	J := sgt.Src + "." + HmacSHA256(sgt.Src, sgt.Key)
 	return J
 }
@@ -108,7 +109,7 @@ func vip(c *gin.Context) {
 
 	parts := strings.Split(J.Jwt, ".")
 	Src := parts[0] + "." + parts[1]
-	sign := HmacSHA256(Src, "bainianzzz")
+	sign := HmacSHA256(Src, "key")
 	if sign == parts[2] {
 		c.String(200, "欢迎回来")
 	} else {
@@ -120,7 +121,7 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/", func(c *gin.Context) {
-		c.String(200, "hello")
+		c.String(200, "请登录")
 	})
 	r.POST("/login", login)
 	r.POST("/vip", vip)
